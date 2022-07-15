@@ -1,5 +1,5 @@
 const { nanoid } = require('nanoid');
-const book = require('./books');
+const books = require('./books');
 
 const addBookHandler = (request, h) => {
   const {
@@ -15,7 +15,7 @@ const addBookHandler = (request, h) => {
   const updatedAt = insertedAt;
 
   const newbook = {
-    id, name, year, author, summary, publisher, pageCount, readPage, finished, reading, updatedAt,
+    id, name, year, author, summary, publisher, pageCount, readPage, finished, reading, insertedAt, updatedAt,
   };
   if (!name) {
     const response = h.response({
@@ -33,9 +33,9 @@ const addBookHandler = (request, h) => {
     response.code(400);
     return response;
   }
-  book.push(newbook);
+  books.push(newbook);
 
-  const isSuccess = book.filter((item) => item.id === id).length > 0;
+  const isSuccess = books.filter((item) => item.id === id).length > 0;
 
   if (isSuccess) {
     const response = h.response({
@@ -56,32 +56,23 @@ const addBookHandler = (request, h) => {
   return response;
 };
 
-const getAllBookHandler = () => {
-  const books = [];
-
-  for (let index = 0; index < book.length; index += 1) {
-    const buku = [{
-      id: book[index].id,
-      name: book[index].name,
-      publisher: book[index].publisher,
-    }];
-    books.push(buku);
-  }
-
-  return {
-    status: 'succes',
-    data: {
-      books,
-    },
-  };
-};
+const getAllBookHandler = () => ({
+  status: 'success',
+  data: {
+    books: books.map((b) => ({
+      id: b.id,
+      name: b.name,
+      publisher: b.publisher,
+    })),
+  },
+});
 
 const getBookByIdHandler = (request, h) => {
   const { id } = request.params;
 
-  const books = book.filter((n) => n.id === id)[0];
+  const book = books.filter((n) => n.id === id)[0];
 
-  if (books !== undefined) {
+  if (book !== undefined) {
     return {
       status: 'success',
       data: {
@@ -91,11 +82,12 @@ const getBookByIdHandler = (request, h) => {
   }
   const response = h.response({
     status: 'fail',
-    message: 'Catatan tidak ditemukan',
+    message: 'Buku tidak ditemukan',
   });
   response.code(404);
   return response;
 };
+
 const editBookByIdHandler = (request, h) => {
   const { id } = request.params;
 
@@ -124,11 +116,11 @@ const editBookByIdHandler = (request, h) => {
   }
   const updatedAt = new Date().toISOString();
 
-  const index = book.findIndex((note) => note.id === id);
+  const index = books.findIndex((note) => note.id === id);
 
   if (index !== -1) {
-    book[index] = {
-      ...book[index],
+    books[index] = {
+      ...books[index],
       name,
       year,
       author,
@@ -157,10 +149,10 @@ const editBookByIdHandler = (request, h) => {
 const deleteBookByIdHandler = (request, h) => {
   const { id } = request.params;
 
-  const index = book.findIndex((note) => note.id === id);
+  const index = books.findIndex((note) => note.id === id);
 
   if (index !== -1) {
-    book.splice(index, 1);
+    books.splice(index, 1);
     const response = h.response({
       status: 'success',
       message: 'Buku berhasil dihapus',
